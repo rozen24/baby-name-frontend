@@ -41,7 +41,7 @@ function NamesTable() {
   // ✅ Fetch Names with pagination + filters
   const fetchNames = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/names", {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/names`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { ...filters, page, limit: perPage },
       });
@@ -54,7 +54,7 @@ function NamesTable() {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/categories", {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/categories`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCategories(res.data);
@@ -65,7 +65,7 @@ function NamesTable() {
 
   const fetchOrigins = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/origins", {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/origins`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrigins(res.data);
@@ -91,7 +91,7 @@ function NamesTable() {
         category: BabyName.category || null,
         origin: BabyName.origin || null,
       };
-      await axios.post("http://localhost:5000/api/names", payload,{
+      await axios.post(`${import.meta.env.VITE_API_URL}/names`, payload,{
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Name added");
@@ -105,7 +105,7 @@ function NamesTable() {
   const updateName = async () => {
     try {
       await axios.put(
-        `http://localhost:5000/api/names/${editingName._id}`,
+        `${import.meta.env.VITE_API_URL}/names/${editingName._id}`,
         editingName,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -122,7 +122,7 @@ function NamesTable() {
       return toast.error("Only superadmin can delete names");
     }
     try {
-      await axios.delete(`http://localhost:5000/api/names/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/names/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Name deleted");
@@ -175,7 +175,7 @@ function NamesTable() {
 
 //         try {
 //           await axios.post(
-//             "http://localhost:5000/api/names/bulk", formData,
+//             "${import.meta.env.VITE_API_URL}/names/bulk", formData,
 //             { names: cleanedData },
 //             { 
 //               headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } 
@@ -208,7 +208,7 @@ function NamesTable() {
     //   formData.append("file", file);
 
     //   try {
-    //     await axios.post("http://localhost:5000/api/names/bulk", formData, {
+    //     await axios.post("${import.meta.env.VITE_API_URL}/names/bulk", formData, {
     //       headers: {
     //         Authorization: `Bearer ${token}`,
     //         // DO NOT set Content-Type manually — let browser set multipart/form-data boundary
@@ -237,7 +237,7 @@ function NamesTable() {
   formData.append("file", file);
   setUploadingCSV(true); // show spinner
   try {
-    await axios.post("http://localhost:5000/api/names/bulk", formData, {
+    await axios.post(`${import.meta.env.VITE_API_URL}/names/bulk`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         // ❌ DO NOT manually set Content-Type — axios will set it with proper boundary

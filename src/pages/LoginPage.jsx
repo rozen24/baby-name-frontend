@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { data, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -29,20 +28,18 @@ function LoginPage() {
 
     if (!res.ok) throw new Error(data.message || data.error);
 
-      if (data.token) {
+    if (data.token) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("username", data.username);
-
     }
 
-
-      // ✅ redirect superadmin/editor to dashboard
-      if (data.role === "superadmin" || "editor") {
-        navigate("/admin");
-      } else {
-        navigate("/login");
-      }
+    // ✅ redirect superadmin/editor to dashboard
+    if (data.role === "superadmin" || data.role === "editor") {
+      navigate("/admin");
+    } else {
+      navigate("/login");
+    }
       
     } catch (err) {
       setError(err.message || "Login failed");

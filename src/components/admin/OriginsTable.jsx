@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -9,7 +9,7 @@ function OriginsTable() {
 
   const token = localStorage.getItem("token");
 
-  const fetchOrigins = async () => {
+  const fetchOrigins = useCallback(async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/origins`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -18,11 +18,11 @@ function OriginsTable() {
     } catch {
       toast.error("Failed to load origins");
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchOrigins();
-  }, []);
+  }, [fetchOrigins]);
 
   const addOrigin = async () => {
     try {
