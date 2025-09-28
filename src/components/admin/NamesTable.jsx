@@ -133,127 +133,65 @@ function NamesTable() {
   };
 
   // ✅ CSV Export
-  const exportCSV = () => {
-    const csv = Papa.unparse(
-      names.map((n) => ({
-        Name: n.name,
-        Gender: n.gender,
-        Category: n.category?.name || "",
-        Origin: n.origin?.name || "",
-        Meaning: n.meaning || "",
-      }))
-    );
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const exportCSV = async () => {
+    try {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/names/export`, {
+      responseType: "blob", // important for file download
+    });
+
+    const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "baby_names.csv";
+    link.href = url;
+    link.setAttribute("download", "baby-names.csv");
+    document.body.appendChild(link);
     link.click();
+    link.remove();
+  } catch (err) {
+    toast.error("Export failed");
+  }
   };
 
- // ✅ CSV Import
-// const importCSV = (e) => {
-//   const file = e.target.files[0];
-//   if (!file) return;
-
-//   const formData = new FormData();
-//   formData.append("file", file);
-
-//   Papa.parse(file, {
-//     header: true,
-//     skipEmptyLines: true, // prevent empty rows
-//     complete: async (results) => {
-//       // Clean up rows (remove blank rows / trim values)
-//       const cleanedData = results.data
-//         .map((row) => ({
-//           name: row.name?.trim() || "",
-//           gender: row.gender?.trim() || "",
-//           meaning: row.meaning?.trim() || "",
-//           category: row.category?.trim() || null,
-//           origin: row.origin?.trim() || null,
-//         }))
-//         .filter((row) => row.name); // must at least have a name
-
-//         try {
-//           await axios.post(
-//             "${import.meta.env.VITE_API_URL}/names/bulk", formData,
-//             { names: cleanedData },
-//             { 
-//               headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } 
-              
-//             }
-//           );
-//           toast.success("CSV imported successfully!");
-//           fetchNames();
-//         } catch (error) {
-//           console.error("❌ CSV import error:", error.response?.data || error.message);
-//           toast.error("Failed to import CSV");
-//         }
-//       },
-//     });
-//   };
-
-    // Use this if your backend route is: router.post('/bulk', protect, upload.single('file'), bulkImportNames)
-    // and bulkImportNames reads req.file
-    // const importCSV = async (e) => {
-    //   const file = e.target.files[0];
-    //   if (!file) return;
-
-    //   const token = localStorage.getItem("token");
-    //   if (!token) {
-    //     toast.error("You must be logged in to import CSV");
-    //     return;
-    //   }
-
-    //   const formData = new FormData();
-    //   formData.append("file", file);
-
-    //   try {
-    //     await axios.post("${import.meta.env.VITE_API_URL}/names/bulk", formData, {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         // DO NOT set Content-Type manually — let browser set multipart/form-data boundary
-    //       },
-    //     });
-
-    //     toast.success("CSV uploaded successfully!");
-    //     fetchNames();
-    //   } catch (error) {
-    //     console.error("❌ CSV upload error:", error.response?.data || error.message);
-    //     toast.error(error.response?.data?.message || "Failed to upload CSV");
-    //   }
-    // };
-
-    const importCSV = async (e) => {
+const importCSV = async (e) => {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file) {
+    toast.info("No file selected");
+    return;
+  }
 
   const token = localStorage.getItem("token");
   if (!token) {
     toast.error("You must be logged in to import CSV");
     return;
   }
-  
-  const formData = new FormData();
-  formData.append("file", file);
-  setUploadingCSV(true); // show spinner
-  try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/names/bulk`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        // ❌ DO NOT manually set Content-Type — axios will set it with proper boundary
-      },
-    });
 
-    toast.success("CSV imported successfully!");
+  setUploadingCSV(true);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/names/bulk`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    // ✅ Show backend message with counts
+    toast.success(res.data.message || "CSV imported successfully!");
     fetchNames();
   } catch (error) {
-    console.error("❌ CSV import error:", error.response?.data || error.message);
+    console.error("❌ CSV import error:", error.response?.data || error.message || error);
     toast.error(error.response?.data?.message || "Failed to import CSV");
   } finally {
-      setUploadingCSV(false); // hide spinner
+    setUploadingCSV(false);
   }
-
 };
+
 
 
 
@@ -262,7 +200,7 @@ function NamesTable() {
 
   return (
     <div>
-      {uploadingCSV && ( <Loader text="PLease Wait... Until complete Upload" /> )}
+      {/* {uploadingCSV && ( <Loader text="PLease Wait... Until complete Upload" /> )} */}
 
       
 
@@ -292,8 +230,8 @@ function NamesTable() {
           >
             Export CSV
           </button>
-          <label className="cursor-pointer bg-blue-500 text-pink-600 px-3 py-1 rounded">
-            Import CSV
+          <label className="cursor-pointer bg-blue-500 text-white px-3 py-1 rounded">
+            {uploadingCSV ? " PLease Wait... Until complete Upload " : "Import CSV"}
             <input
               type="file"
               accept=".csv"
@@ -311,10 +249,9 @@ function NamesTable() {
           value={filters.gender}
           onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
         >
-          <option value="">All Genders</option>
-          <option value="Boy">Boy</option>
-          <option value="Girl">Girl</option>
-          <option value="Unisex">Unisex</option>
+          <option value="">ছেলে/মেয়ে</option>
+          <option value="boy">ছেলে</option>
+          <option value="gitl">মেয়ে</option>
         </select>
 
         <select
@@ -368,10 +305,9 @@ function NamesTable() {
             onChange={(e) => setBabyName({ ...BabyName, gender: e.target.value })}
             className="border p-2"
           >
-            <option value="">Gender</option>
-            <option value="Boy">Boy</option>
-            <option value="Girl">Girl</option>
-            <option value="Unisex">Unisex</option>
+            <option value="">ছেলে/মেয়ে</option>
+            <option value="boy">ছেলে</option>
+            <option value="girl">মেয়ে</option>
           </select>
           <select
             value={BabyName.category}
@@ -390,7 +326,7 @@ function NamesTable() {
             onChange={(e) => setBabyName({ ...BabyName, origin: e.target.value })}
             className="border p-2"
           >
-            <option value="">Select Origin</option>
+            <option value="">Select Alphabet</option>
             {origins.map((o) => (
               <option key={o._id} value={o._id}>
                 {o.name}
@@ -417,9 +353,9 @@ function NamesTable() {
         <thead>
           <tr className="bg-gray-100">
             <th className="p-1 border">Name</th>
-            <th className="p-1 border">Gender</th>
+            <th className="p-1 border">ছেলে/মেয়ে</th>
             <th className="p-1 border">Category</th>
-            <th className="p-1 border">Origin</th>
+            <th className="p-1 border">Alphabet</th>
             <th className="p-1 border">Meaning</th>
             <th className="p-1 border">Date</th>
             <th className="p-1 border">Actions</th>
@@ -429,7 +365,7 @@ function NamesTable() {
           {names.map((n) => (
             <tr key={n._id}>
               <td className="p-1 border">{n.name}</td>
-              <td className="p-1 border">{n.gender}</td>
+              <td className="p-1 border">{n.genderLabel || (n.gender === "boy" ? "ছেলে" : n.gender === "girl" ? "মেয়ে" : "")}</td>
               <td className="p-1 border">{n.category?.name || "-"}</td>
               <td className="p-1 border">{n.origin?.name || "-"}</td>
               <td className="p-1 border">{n.meaning}</td>
@@ -506,10 +442,9 @@ function NamesTable() {
                 setEditingName({ ...editingName, gender: e.target.value })
               }
             >
-              <option value="">Select Gender</option>
-              <option value="Boy">Boy</option>
-              <option value="Girl">Girl</option>
-              <option value="Unisex">Unisex</option>
+              <option value="">ছেলে/মেয়ে</option>
+              <option value="boy">ছেলে</option>
+              <option value="girl">মেয়ে</option>
             </select>
              {/* Category Dropdown */}
             <select
@@ -535,7 +470,7 @@ function NamesTable() {
                 setEditingName({ ...editingName, origin: e.target.value })
               }
             >
-              <option value="">Select Origin</option>
+              <option value="">Select Alphabet</option>
               {origins.map((o) => (
                 <option key={o._id} value={o._id}>
                   {o.name}
