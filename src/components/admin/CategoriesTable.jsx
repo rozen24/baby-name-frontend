@@ -27,7 +27,7 @@ function CategoriesTable() {
   const addCategory = async () => {
     try {
       await axios.post(
-        "${import.meta.env.VITE_API_URL}/categories",
+        `${import.meta.env.VITE_API_URL}/categories`,
         { name: newCategory },
         { headers: { Authorization: `Bearer ${token}` } }
       );
