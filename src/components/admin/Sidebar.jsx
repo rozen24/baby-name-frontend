@@ -8,14 +8,14 @@ const Sidebar = () => {
    if (role === "superadmin") {
        links = [
         {name: "All Users", path: "/admin/users"},
-        { name: " All Categories", path: "/admin/categories" },
-        { name: "All Origins", path: "/admin/origins" },
+  { name: " All Categories", path: "/admin/categories" },
+  { name: "All Alphabets", path: "/admin/alphabets" },
         { name: "All Names", path: "/admin/names" }
       ];
    } else if (role === "editor") {
        links = [
-        { name: " All Categories", path: "/admin/categories" },
-        { name: "All Origins", path: "/admin/origins" },
+  { name: " All Categories", path: "/admin/categories" },
+  { name: "All Alphabets", path: "/admin/alphabets" },
         { name: "All Names", path: "/admin/names" }
       ];
    } else {

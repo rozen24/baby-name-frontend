@@ -2,83 +2,83 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-function OriginsTable() {
-  const [origins, setOrigins] = useState([]);
-  const [newOrigin, setNewOrigin] = useState("");
-  const [editingOrigin, setEditingOrigin] = useState(null);
+function AlphabetsTable() {
+  const [alphabets, setAlphabets] = useState([]);
+  const [newAlphabet, setNewAlphabet] = useState("");
+  const [editingAlphabet, setEditingAlphabet] = useState(null);
 
   const token = localStorage.getItem("token");
 
-  const fetchOrigins = useCallback(async () => {
+  const fetchAlphabets = useCallback(async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/origins`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/alphabets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setOrigins(res.data);
+      setAlphabets(res.data);
     } catch {
-      toast.error("Failed to load origins");
+      toast.error("Failed to load alphabets");
     }
   }, [token]);
 
   useEffect(() => {
-    fetchOrigins();
-  }, [fetchOrigins]);
+    fetchAlphabets();
+  }, [fetchAlphabets]);
 
-  const addOrigin = async () => {
+  const addAlphabet = async () => {
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/origins`,
-        { name: newOrigin },
+        `${import.meta.env.VITE_API_URL}/alphabets`,
+        { name: newAlphabet },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success("Origin added");
-      setNewOrigin("");
-      fetchOrigins();
+      toast.success("Alphabet added");
+      setNewAlphabet("");
+      fetchAlphabets();
     } catch {
-      toast.error("Failed to add origin");
+      toast.error("Failed to add alphabet");
     }
   };
 
-  const updateOrigin = async () => {
+  const updateAlphabet = async () => {
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/origins/${editingOrigin._id}`,
-        { name: editingOrigin.name },
+        `${import.meta.env.VITE_API_URL}/alphabets/${editingAlphabet._id}`,
+        { name: editingAlphabet.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success("Origin updated");
-      setEditingOrigin(null);
-      fetchOrigins();
+      toast.success("Alphabet updated");
+      setEditingAlphabet(null);
+      fetchAlphabets();
     } catch {
-      toast.error("Failed to update origin");
+      toast.error("Failed to update alphabet");
     }
   };
 
-  const deleteOrigin = async (id) => {
+  const deleteAlphabet = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/origins/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/alphabets/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success("Origin deleted");
-      fetchOrigins();
+      toast.success("Alphabet deleted");
+      fetchAlphabets();
     } catch {
-      toast.error("Failed to delete origin");
+      toast.error("Failed to delete alphabet");
     }
   };
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Origins</h2>
+  <h2 className="text-xl font-bold mb-4">Alphabets</h2>
 
       <div className="flex mb-4">
         <input
           type="text"
-          placeholder="New origin"
-          value={newOrigin}
-          onChange={(e) => setNewOrigin(e.target.value)}
+          placeholder="New alphabet"
+          value={newAlphabet}
+          onChange={(e) => setNewAlphabet(e.target.value)}
           className="border p-2 flex-1 mr-2"
         />
-        <button onClick={addOrigin} className="bg-green-600 text-pink-600 px-4 py-2 rounded">
+        <button onClick={addAlphabet} className="bg-green-600 text-pink-600 px-4 py-2 rounded">
           Add
         </button>
       </div>
@@ -86,26 +86,26 @@ function OriginsTable() {
       <table className="w-full border">
         <thead>
           <tr className="bg-gray-100">
-            <th className="p-2 border">Origin Name</th>
+            <th className="p-2 border">Alphabet Name</th>
             <th className="p-2 border"># Name</th>
             <th className="p-2 border">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {origins.map((origin) => (
-            <tr key={origin._id}>
-              <td className="p-2 border">{origin.name}</td>
-              <td className="p-2 border">{origin.count}</td>
+          {alphabets.map((alphabet) => (
+            <tr key={alphabet._id}>
+              <td className="p-2 border">{alphabet.name}</td>
+              <td className="p-2 border">{alphabet.count}</td>
               <td className="p-2 border space-x-2">
                 <button
                   className="bg-yellow-500 text-pink-600 px-2 py-1 rounded"
-                  onClick={() => setEditingOrigin(origin)}
+                  onClick={() => setEditingAlphabet(alphabet)}
                 >
                   Edit
                 </button>
                 <button
                   className="bg-red-600 text-pink-600 px-2 py-1 rounded"
-                  onClick={() => deleteOrigin(origin._id)}
+                  onClick={() => deleteAlphabet(alphabet._id)}
                 >
                   Delete
                 </button>
@@ -115,28 +115,28 @@ function OriginsTable() {
         </tbody>
       </table>
 
-      {editingOrigin && (
+      {editingAlphabet && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h3 className="text-lg font-bold mb-4">Edit Origin</h3>
+            <h3 className="text-lg font-bold mb-4">Edit Alphabet</h3>
             <input
               type="text"
-              value={editingOrigin.name}
+              value={editingAlphabet.name}
               onChange={(e) =>
-                setEditingOrigin({ ...editingOrigin, name: e.target.value })
+                setEditingAlphabet({ ...editingAlphabet, name: e.target.value })
               }
               className="border p-2 w-full mb-4"
             />
             <div className="flex justify-end space-x-2">
               <button
                 className="bg-gray-400 text-pink-600 px-4 py-2 rounded"
-                onClick={() => setEditingOrigin(null)}
+                onClick={() => setEditingAlphabet(null)}
               >
                 Cancel
               </button>
               <button
                 className="bg-blue-600 text-pink-600 px-4 py-2 rounded"
-                onClick={updateOrigin}
+                onClick={updateAlphabet}
               >
                 Update
               </button>
@@ -148,4 +148,4 @@ function OriginsTable() {
   );
 }
 
-export default OriginsTable;
+export default AlphabetsTable;

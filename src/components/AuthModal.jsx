@@ -4,75 +4,83 @@ import { toast } from "react-toastify";
 
 const API_URL = `${import.meta.env.VITE_API_URL}/auth`; // backend URL
 
-const AuthModal = ({ showModal, setShowModal , onLogin }) => {
+const AuthModal = ({ isOpen, onClose, onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // ✅ Reset form when modal opens
   useEffect(() => {
-    if (showModal) {
+    if (isOpen) {
       setForm({ username: "", email: "", password: "" });
       setError("");
     }
-  }, [showModal]);
+  }, [isOpen]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  // ✅ destructure from form state
-  const { username, email, password } = form;
+    // ✅ destructure from form state
+    const { username, email, password } = form;
 
-  const url = isLogin
-    ? `${import.meta.env.VITE_API_URL}/auth/login`
-    : `${import.meta.env.VITE_API_URL}/auth/register`;
+    const url = isLogin
+      ? `${import.meta.env.VITE_API_URL}/auth/login`
+      : `${import.meta.env.VITE_API_URL}/auth/register`;
 
-  // ✅ send only required fields
-  const payload = isLogin
-    ? { email, password }
-    : { username, email, password };
+    // ✅ send only required fields
+    const payload = isLogin
+      ? { email, password }
+      : { username, email, password };
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || data.error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error);
 
-    if (isLogin) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-      localStorage.setItem("username", data.username);
+      if (isLogin) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("username", data.username);
 
-      if (typeof onLogin === "function") {
-        onLogin(data.username, data.role, data.token);
+        if (typeof onLogin === "function") {
+          onLogin(data.username, data.role, data.token);
+        }
+        
+        toast.success("Login successful!");
+        onClose();
+        window.location.reload(); // Refresh to update navbar
+      } else {
+        toast.success("Registration successful! Please login.");
+        setIsLogin(true); // Switch to login mode
       }
+    } catch (err) {
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    toast.message(isLogin ? "Login successful!" : "Registration successful!");
-    setShowModal(false);
-  } catch (err) {
-    toast.error(err);
-  }
-};
-
-
-
-  if (!showModal) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
         {/* Close Button */}
         <button
-          onClick={() => setShowModal(false)}
+          onClick={onClose}
           className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
         >
           <X className="w-6 h-6" />
@@ -124,9 +132,10 @@ const AuthModal = ({ showModal, setShowModal , onLogin }) => {
 
           <button
             type="submit"
-            className="w-full bg-pink-500 text-pink-600 py-2 rounded-lg hover:bg-pink-600"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLogin ? "Login" : "Register"}
+            {loading ? "Loading..." : (isLogin ? "Login" : "Register")}
           </button>
         </form>
 
@@ -134,7 +143,10 @@ const AuthModal = ({ showModal, setShowModal , onLogin }) => {
         <p className="mt-4 text-center text-sm">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError("");
+            }}
             className="text-pink-600 font-semibold hover:underline"
           >
             {isLogin ? "Register here" : "Login here"}

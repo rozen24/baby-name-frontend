@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Papa from "papaparse";
 import { toast } from "react-toastify";
-import Loader from "../Loader";
 
 
 
@@ -10,14 +9,14 @@ import Loader from "../Loader";
 function NamesTable() {
   const [names, setNames] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [origins, setOrigins] = useState([]);
+  const [alphabets, setalphabets] = useState([]);
   const [uploadingCSV, setUploadingCSV] = useState(false);
 
 
   const [filters, setFilters] = useState({
     gender: "",
     category: "",
-    origin: "",
+    alphabet: "",
     search: "",
   });
 
@@ -25,8 +24,9 @@ function NamesTable() {
     name: "",
     gender: "",
     category: "",
-    origin: "",
+    alphabet: "",
     meaning: "",
+    description: "",
   });
 
   const [editingName, setEditingName] = useState(null);
@@ -63,14 +63,14 @@ function NamesTable() {
     }
   };
 
-  const fetchOrigins = async () => {
+  const fetchalphabets = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/origins`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/alphabets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setOrigins(res.data);
+      setalphabets(res.data);
     } catch {
-      toast.error("Failed to load origins");
+      toast.error("Failed to load alphabets");
     }
   };
 
@@ -80,7 +80,7 @@ function NamesTable() {
 
   useEffect(() => {
     fetchCategories();
-    fetchOrigins();
+    fetchalphabets();
   }, []);
 
   // ✅ CRUD Actions
@@ -89,13 +89,13 @@ function NamesTable() {
         const payload = {
         ...BabyName,
         category: BabyName.category || null,
-        origin: BabyName.origin || null,
+        alphabet: BabyName.alphabet || null,
       };
       await axios.post(`${import.meta.env.VITE_API_URL}/names`, payload,{
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Name added");
-      setBabyName({ name: "", gender: "", category: "", origin: "", meaning: "" });
+      setBabyName({ name: "", gender: "", category: "", alphabet: "", meaning: "", description: "" });
       fetchNames();
     } catch {
       toast.error("Failed to add name");
@@ -269,11 +269,11 @@ const importCSV = async (e) => {
 
         <select
           className="border p-2"
-          value={filters.origin}
-          onChange={(e) => setFilters({ ...filters, origin: e.target.value })}
+          value={filters.alphabet}
+          onChange={(e) => setFilters({ ...filters, alphabet: e.target.value })}
         >
-          <option value="">All Origins</option>
-          {origins.map((o) => (
+          <option value="">All alphabets</option>
+          {alphabets.map((o) => (
             <option key={o._id} value={o._id}>
               {o.name}
             </option>
@@ -322,22 +322,29 @@ const importCSV = async (e) => {
             ))}
           </select>
           <select
-            value={BabyName.origin}
-            onChange={(e) => setBabyName({ ...BabyName, origin: e.target.value })}
+            value={BabyName.alphabet}
+            onChange={(e) => setBabyName({ ...BabyName, alphabet: e.target.value })}
             className="border p-2"
           >
             <option value="">Select Alphabet</option>
-            {origins.map((o) => (
+            {alphabets.map((o) => (
               <option key={o._id} value={o._id}>
                 {o.name}
               </option>
             ))}
           </select>
         </div>
-        <textarea
+        <input
+          type="text"
           placeholder="Meaning"
           value={BabyName.meaning}
           onChange={(e) => setBabyName({ ...BabyName, meaning: e.target.value })}
+          className="border p-2 w-full mb-2"
+        />
+        <textarea
+          placeholder="Description"
+          value={BabyName.description}
+          onChange={(e) => setBabyName({ ...BabyName, description: e.target.value })}
           className="border p-2 w-full mb-2"
         />
         <button
@@ -357,6 +364,7 @@ const importCSV = async (e) => {
             <th className="p-1 border">Category</th>
             <th className="p-1 border">Alphabet</th>
             <th className="p-1 border">Meaning</th>
+            <th className="p-1 border">Description</th>
             <th className="p-1 border">Date</th>
             <th className="p-1 border">Actions</th>
           </tr>
@@ -367,8 +375,9 @@ const importCSV = async (e) => {
               <td className="p-1 border">{n.name}</td>
               <td className="p-1 border">{n.genderLabel || (n.gender === "boy" ? "ছেলে" : n.gender === "girl" ? "মেয়ে" : "")}</td>
               <td className="p-1 border">{n.category?.name || "-"}</td>
-              <td className="p-1 border">{n.origin?.name || "-"}</td>
+              <td className="p-1 border">{n.alphabet?.name || "-"}</td>
               <td className="p-1 border">{n.meaning}</td>
+              <td className="p-1 border">{n.description}</td>
               <td className="p-1 border">
                 {new Date(n.createdAt).toLocaleDateString()}
               </td>
@@ -427,12 +436,22 @@ const importCSV = async (e) => {
               }
               className="border p-2 w-full mb-2"
             />
-            <textarea
+            <input
+              type="text"
               value={editingName.meaning}
               onChange={(e) =>
                 setEditingName({ ...editingName, meaning: e.target.value })
               }
               className="border p-2 w-full mb-2"
+              placeholder="Meaning"
+            />
+            <textarea
+              value={editingName.description}
+              onChange={(e) =>
+                setEditingName({ ...editingName, description: e.target.value })
+              }
+              className="border p-2 w-full mb-2"
+              placeholder="Description"
             />
             {/* Gender */}
             <select
@@ -462,16 +481,16 @@ const importCSV = async (e) => {
               ))}
             </select>
 
-            {/* Origin Dropdown */}
+            {/* alphabet Dropdown */}
             <select
               className="border p-2 w-full mb-2"
-              value={editingName.origin?._id || editingName.origin || ""}
+              value={editingName.alphabet?._id || editingName.alphabet || ""}
               onChange={(e) =>
-                setEditingName({ ...editingName, origin: e.target.value })
+                setEditingName({ ...editingName, alphabet: e.target.value })
               }
             >
               <option value="">Select Alphabet</option>
-              {origins.map((o) => (
+              {alphabets.map((o) => (
                 <option key={o._id} value={o._id}>
                   {o.name}
                 </option>

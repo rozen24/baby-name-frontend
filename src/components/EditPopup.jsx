@@ -47,12 +47,21 @@ const EditPopup = ({ item, setEditItem, activeView, fetchData }) => {
                 }
                 required
               />
-              <textarea
+              <input
+                type="text"
                 placeholder="Meaning"
                 className="w-full border p-2 rounded"
                 value={formData.meaning || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, meaning: e.target.value })
+                }
+              />
+              <textarea
+                placeholder="Description"
+                className="w-full border p-2 rounded"
+                value={formData.description || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
                 }
               />
               <select

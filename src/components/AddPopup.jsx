@@ -92,10 +92,16 @@ const AddPopup = ({ popupType, setPopupType, fetchData }) => {
                 onChange={(e) => setFormData({ ...formData, babyName: e.target.value })}
                 required
               />
-              <textarea
+              <input
+                type="text"
                 placeholder="Meaning"
                 className="w-full border p-2 rounded"
                 onChange={(e) => setFormData({ ...formData, meaning: e.target.value })}
+              />
+              <textarea
+                placeholder="Description"
+                className="w-full border p-2 rounded"
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
               <select
                 className="w-full border p-2 rounded"
